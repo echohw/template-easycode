@@ -1,0 +1,194 @@
+##引入mybatis支持
+$!init
+$!mybatisSupport
+
+##设置保存名称与保存位置
+$!callback.setSavePath($tool.append($modulePath, "/src/main/resources/mapper"))
+$!callback.setFileName($tool.append($daoClassName, ".xml"))
+
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="$!{tableInfo.savePackageName}.$!{daoPackage}.$!{daoClassName}">
+
+    <!--ResultMap-->
+    <resultMap id="$!{entityClassName}ResultMap" type="$!{tableInfo.savePackageName}.$!{entityPackage}.$!{entityClassName}">
+#foreach($column in $tableInfo.pkColumn)
+      <id column="$!{column.obj.name}" property="$!{column.name}" jdbcType="$!{column.ext.jdbcType}"/>
+#end
+#foreach($column in $tableInfo.otherColumn)
+      <result column="$!{column.obj.name}" property="$!{column.name}" jdbcType="$!{column.ext.jdbcType}"/>
+#end
+    </resultMap>
+
+    <!--Query查询子句-->
+    <sql id="QueryByParamsWhereClause">
+      <where>
+#foreach($column in $tableInfo.fullColumn)
+        <if test="${column.name} != null#if($column.type.equals("java.lang.String")) and $!column.name != ''#end">
+          and `$!{column.obj.name}` = #{$!{column.name},jdbcType=$!{column.ext.jdbcType}}
+        </if>
+#if($!{column.ext.genLikeProp} && ${column.type.equals("java.lang.String")})
+        <if test="(${column.name} == null or ${column.name} == '') and ${column.name}Like != null and ${column.name}Like != ''">
+          and `$!{column.obj.name}` like binary concat('%', #{$!{column.name}Like}, '%')
+        </if>
+#end
+#if($!{column.ext.genInProp})
+        <if test="(${column.name} == null#if($column.type.equals("java.lang.String")) or $!column.name == ''#end) and ${column.name}s != null and ${column.name}s.size() > 0">
+          <foreach collection="${column.name}s" index="index" item="item" open="and ${column.obj.name} in (" separator="," close=")">
+            #{item}
+          </foreach>
+        </if>
+#end
+#end
+      </where>
+    </sql>
+
+    <!--新增-->
+    <insert id="insert" parameterType="$!{tableInfo.savePackageName}.$!{entityPackage}.$!{entityClassName}">
+      insert into $!{tableInfo.obj.name} (
+#allSqlColumn()
+
+      )
+      values (
+#allMyBatisColumn()
+
+      )
+    </insert>
+
+    <!--有选择的新增-->
+    <insert id="insertSelective" parameterType="$!{tableInfo.savePackageName}.$!{entityPackage}.$!{entityClassName}">
+      insert into $!{tableInfo.obj.name}
+      <trim prefix="(" suffix=")" suffixOverrides=",">
+#foreach($column in $tableInfo.fullColumn)
+        <if test="${column.name} != null#if($column.type.equals("java.lang.String")) and $!column.name != ''#end">
+          `$!{column.obj.name}`,
+        </if>
+#end
+      </trim>
+      <trim prefix="values (" suffix=")" suffixOverrides=",">
+#foreach($column in $tableInfo.fullColumn)
+        <if test="${column.name} != null#if($column.type.equals("java.lang.String")) and $!column.name != ''#end">
+          #{$!{column.name},jdbcType=$!{column.ext.jdbcType}},
+        </if>
+#end
+      </trim>
+    </insert>
+
+    <!--批量新增-->
+    <insert id="insertBatch" parameterType="java.util.List">
+      insert into $!{tableInfo.obj.name}
+      <trim prefix="(" suffix=")" suffixOverrides="">
+#allSqlColumn()
+
+      </trim>
+      values
+      <foreach collection="list" index="index" item="item" open="" close="" separator=",">
+        (#foreach($column in $tableInfo.fullColumn)#{item.$!{column.name},jdbcType=$!{column.ext.jdbcType}}#if($velocityHasNext), #end#end)
+      </foreach>
+    </insert>
+
+    <!--根据条件删除-->
+    <delete id="deleteByParams" parameterType="$!{tableInfo.savePackageName}.$!{paramsPackage}.$!{paramsClassName}">
+      delete from $!{tableInfo.obj.name}
+      <include refid="QueryByParamsWhereClause" />
+    </delete>
+
+#if(!$tableInfo.pkColumn.isEmpty())
+    <!--根据主键进行更新-->
+    <update id="update" parameterType="$!{tableInfo.savePackageName}.$!{entityPackage}.$!{entityClassName}">
+      update $!{tableInfo.obj.name} set
+      <trim prefix="" suffix="" suffixOverrides=",">
+#foreach($column in $tableInfo.otherColumn)
+        `$!{column.obj.name}` = #{$!{column.name},jdbcType=$!{column.ext.jdbcType}},
+#end
+      </trim>
+      <where>
+#foreach($column in $tableInfo.pkColumn)
+        and `$!{column.obj.name}` = #{$!{column.name},jdbcType=$!{column.ext.jdbcType}}
+#end
+      </where>
+    </update>
+#end
+
+#if(!$tableInfo.pkColumn.isEmpty())
+    <!--根据主键有选择的更新-->
+    <update id="updateSelective" parameterType="$!{tableInfo.savePackageName}.$!{entityPackage}.$!{entityClassName}">
+      update $!{tableInfo.obj.name}
+      <set>
+#foreach($column in $tableInfo.otherColumn)
+        <if test="${column.name} != null#if($column.type.equals("java.lang.String")) and $!{column.name} != ''#end">
+          `$!{column.obj.name}` = #{$!{column.name},jdbcType=$!{column.ext.jdbcType}},
+        </if>
+#end
+      </set>
+      <where>
+#foreach($column in $tableInfo.pkColumn)
+        and `$!{column.obj.name}` = #{$!{column.name},jdbcType=$!{column.ext.jdbcType}}
+#end
+      </where>
+    </update>
+#end
+
+    <!--根据条件进行更新-->
+    <update id="updateByParams" parameterType="map">
+      update $!{tableInfo.obj.name}
+      <if test="selective">
+        <set>
+#foreach($column in $tableInfo.otherColumn)
+          <if test="record.${column.name} != null#if($column.type.equals("java.lang.String")) and record.$!{column.name} != ''#end">
+            `$!{column.obj.name}` = #{record.$!{column.name},jdbcType=$!{column.ext.jdbcType}},
+          </if>
+#end
+        </set>
+      </if>
+      <if test="!selective">
+        set <trim prefix="" suffix="" suffixOverrides=",">
+#foreach($column in $tableInfo.otherColumn)
+          `$!{column.obj.name}` = #{record.$!{column.name},jdbcType=$!{column.ext.jdbcType}},
+#end
+        </trim>
+      </if>
+      <where>
+#foreach($column in $tableInfo.fullColumn)
+        <if test="params.${column.name} != null#if($column.type.equals("java.lang.String")) and params.$!column.name != ''#end">
+          and `$!{column.obj.name}` = #{params.$!{column.name},jdbcType=$!{column.ext.jdbcType}}
+        </if>
+#if($!{column.ext.genLikeProp} && ${column.type.equals("java.lang.String")})
+        <if test="(params.${column.name} == null or params.${column.name} == '') and params.${column.name}Like != null and params.${column.name}Like != ''">
+          and `$!{column.obj.name}` like binary concat('%', #{params.$!{column.name}Like}, '%')
+        </if>
+#end
+#if($!{column.ext.genInProp})
+        <if test="(params.${column.name} == null#if($column.type.equals("java.lang.String")) or params.$!column.name == ''#end) and params.${column.name}s != null and params.${column.name}s.size() > 0">
+          <foreach collection="params.${column.name}s" index="index" item="item" open="and ${column.obj.name} in (" separator="," close=")">
+            #{item}
+          </foreach>
+        </if>
+#end
+#end
+      </where>
+    </update>
+
+    <!--根据主键查询-->
+    <select id="queryByPk" parameterType="map" resultMap="$!{entityClassName}ResultMap">
+      select
+#allSqlColumn()
+
+      from $!tableInfo.obj.name
+      <where>
+#foreach($column in $tableInfo.pkColumn)
+        and `$column.obj.name` = #{${column.name},jdbcType=$!{column.ext.jdbcType}}
+#end
+      </where>
+    </select>
+
+    <!--根据条件查询-->
+    <select id="queryListByParams" parameterType="$!{tableInfo.savePackageName}.$!{paramsPackage}.$!{paramsClassName}" resultMap="$!{entityClassName}ResultMap">
+      select
+#allSqlColumn()
+
+      from $!tableInfo.obj.name
+      <include refid="QueryByParamsWhereClause" />
+    </select>
+
+</mapper>

@@ -1,0 +1,102 @@
+$!init
+$!define
+
+##设置文件保存路径
+#save($controllerClassSavePath, $controllerClassName, ".java")
+
+##使用宏定义设置包后缀
+#setPackageSuffix($!controllerPackage)
+
+import $!{tableInfo.savePackageName}.$!{entityPackage}.$!{entityClassName};
+import $!{tableInfo.savePackageName}.$!{paramsPackage}.$!{paramsClassName};
+import $!{tableInfo.savePackageName}.$!{servicePackage}.$!{serviceClassName};
+import org.springframework.web.bind.annotation.*;
+import org.springframework.beans.factory.annotation.Autowired;
+import java.util.List;
+
+/**
+ * $!{tableInfo.comment}($!{entityClassName})表控制层
+ *
+ * @author $!author
+ * @since $!time.currTime()
+ */
+@RestController
+@RequestMapping("/$!{tool.firstLowerCase($entityClassName)}")
+public class $!controllerClassName {
+    @Autowired
+    private $!{serviceClassName} $!{tool.firstLowerCase($serviceClassName)};
+
+    /**
+     * 新增数据
+     */
+    @PostMapping("/insert")
+    public $!{entityClassName} insert(@RequestBody $entityClassName ${tool.firstLowerCase($entityClassName)}) {
+        return $!{tool.firstLowerCase($serviceClassName)}.insert($!{tool.firstLowerCase($entityClassName)});
+    }
+
+    /**
+     * 有选择的新增
+     */
+    @PostMapping("/insertSelective")
+    public $!{entityClassName} insertSelective(@RequestBody $entityClassName ${tool.firstLowerCase($entityClassName)}) {
+        return $!{tool.firstLowerCase($serviceClassName)}.insertSelective($!{tool.firstLowerCase($entityClassName)});
+    }
+
+    /**
+     * 批量新增
+     */
+    @PostMapping("/insertBatch")
+    public int insertBatch(@RequestBody List<$entityClassName> ${tool.firstLowerCase($entityClassName)}List) {
+        return $!{tool.firstLowerCase($serviceClassName)}.insertBatch($!{tool.firstLowerCase($entityClassName)}List);
+    }
+
+    /**
+     * 根据条件删除数据
+     */
+    @DeleteMapping("/deleteByParams")
+    public int deleteByParams($!{paramsClassName} params) {
+        return $!{tool.firstLowerCase($serviceClassName)}.deleteByParams(params);
+    }
+
+    /**
+     * 修改数据
+     */
+    @PutMapping("/update")
+    public int update(@RequestBody $!{entityClassName} $!{tool.firstLowerCase($entityClassName)}) {
+        return $!{tool.firstLowerCase($serviceClassName)}.update($!{tool.firstLowerCase($entityClassName)});
+    }
+
+    /**
+     * 有选择的修改
+     */
+    @PutMapping("/updateSelective")
+    public int updateSelective(@RequestBody $!{entityClassName} $!{tool.firstLowerCase($entityClassName)}) {
+        return $!{tool.firstLowerCase($serviceClassName)}.updateSelective($!{tool.firstLowerCase($entityClassName)});
+    }
+
+    /**
+     * 根据条件修改数据
+     */
+    @PutMapping("/updateByParams")
+    public int updateByParams(@RequestBody $!{entityClassName} $!{tool.firstLowerCase($entityClassName)}, $!paramsClassName params, boolean selective) {
+        return $!{tool.firstLowerCase($serviceClassName)}.updateByParams($!{tool.firstLowerCase($entityClassName)}, params, selective);
+    }
+
+#if(!$tableInfo.pkColumn.isEmpty())    /**
+     * 根据主键查询单条数据
+     */
+    @GetMapping("/queryByPk")
+    public $entityClassName queryByPk(#foreach($column in $!{tableInfo.pkColumn})@RequestParam("${column.name}") ${tool.getClsNameByFullName($column.type)} ${column.name}#if($velocityHasNext), #end#end) {
+        return $!{tool.firstLowerCase($serviceClassName)}.queryByPk(#foreach($column in $!{tableInfo.pkColumn})${column.name}#if($velocityHasNext), #end#end);
+    }
+#end
+
+    /**
+     * 查询多条数据
+     */
+    @GetMapping("/queryListByParams")
+    public List<$!{entityClassName}> queryListByParams($!{paramsClassName} params) {
+        return $!{tool.firstLowerCase($serviceClassName)}.queryListByParams(params);
+    }
+
+}

@@ -1,0 +1,51 @@
+##（Velocity宏定义）
+
+##定义设置表名后缀的宏定义，调用方式：#setTableSuffix("Test")
+#macro(setTableSuffix $suffix)
+    #set($tableName = $tool.append($tableInfo.name, $suffix))
+#end
+
+##定义设置包名后缀的宏定义，调用方式：#setPackageSuffix("Test")
+#macro(setPackageSuffix $suffix)
+#if($suffix != "")package #end#if($tableInfo.savePackageName != "")$!{tableInfo.savePackageName}#end#if($suffix != "").$suffix#end;
+#end
+
+##定义直接保存路径与文件名简化的宏定义，调用方式：#save("/entity", "Example", ".java")
+#macro(save $path $fileName $suffix)
+    $!callback.setSavePath($tool.append($tableInfo.savePath, $path))
+    $!callback.setFileName($tool.append($fileName, $suffix))
+#end
+
+##定义表注释的宏定义，调用方式：#tableComment("注释信息")
+#macro(tableComment $desc)
+/**
+ * $!{tableInfo.comment}($!{tableInfo.name})$desc
+ *
+ * @author $!author
+ * @since $!time.currTime()
+ */
+#end
+
+##定义GET方法的宏定义，调用方式：#getMethod($column)
+#macro(getMethod $columnType $columnName)
+
+    public $columnType get$!{tool.firstUpperCase($columnName)}() {
+        return $columnName;
+    }
+#end
+
+##定义SET方法的宏定义，调用方式：#setMethod($column)
+#macro(setMethod $columnType $columnName)
+
+    public void set$!{tool.firstUpperCase($columnName)}($columnType $columnName) {
+        this.$columnName = $columnName;
+    }
+#end
+
+## 使用Lombok注解
+#macro(importLombok)
+@lombok.Data
+@lombok.NoArgsConstructor
+@lombok.AllArgsConstructor
+@lombok.experimental.Accessors(chain = true)
+#end

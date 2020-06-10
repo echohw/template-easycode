@@ -1,0 +1,67 @@
+$!init
+$!define
+
+##设置文件保存路径
+#save($daoClassSavePath, $daoClassName, ".java")
+
+#if($!{tableInfo.savePackageName})package $!{tableInfo.savePackageName}.#end$!{daoPackage};
+
+import $!{tableInfo.savePackageName}.$!entityPackage.$!{entityClassName};
+import $!{tableInfo.savePackageName}.$!paramsPackage.$!{paramsClassName};
+import org.apache.ibatis.annotations.Param;
+import org.apache.ibatis.annotations.Mapper;
+import java.util.List;
+
+/**
+ * $!{tableInfo.comment}($!{entityClassName})表数据库访问层
+ *
+ * @author $!author
+ * @since $!time.currTime()
+ */
+@Mapper
+public interface $!{daoClassName} {
+
+    /**
+     * 插入数据
+     */
+    int insert($!{entityClassName} $!{tool.firstLowerCase($!{entityClassName})});
+    /**
+     * 有选择的插入
+     */
+    int insertSelective($!{entityClassName} $!{tool.firstLowerCase($!{entityClassName})});
+    /**
+     * 批量插入
+     */
+    int insertBatch(List<$!{entityClassName}> $!{tool.firstLowerCase($!{entityClassName})}List);
+    /**
+     * 根据条件删除
+     */
+    int deleteByParams($!{paramsClassName} params);
+#if(!$tableInfo.pkColumn.isEmpty())
+    /**
+     * 根据主键更新
+     */
+    int update($!{entityClassName} $!{tool.firstLowerCase($!{entityClassName})});
+#end
+#if(!$tableInfo.pkColumn.isEmpty())
+    /**
+     * 根据主键有选择的更新
+     */
+    int updateSelective($!{entityClassName} $!{tool.firstLowerCase($!{entityClassName})});
+#end
+    /**
+     * 根据条件进行更新
+     */
+    int updateByParams(@Param("record") $!{entityClassName} $!tool.firstLowerCase($!{entityClassName}), @Param("params") $!{paramsClassName} params, @Param("selective") boolean selective);
+#if(!$tableInfo.pkColumn.isEmpty())
+    /**
+     * 根据主键查询
+     */
+    $!{entityClassName} queryByPk(#foreach($column in $!{tableInfo.pkColumn})@Param("$!{column.name}") $!{tool.getClsNameByFullName($!{column.type})} $!{column.name}#if($velocityHasNext), #end#end);
+#end
+    /**
+     * 根据条件查询
+     */
+    List<$!{entityClassName}> queryListByParams($!{paramsClassName} params);
+
+}

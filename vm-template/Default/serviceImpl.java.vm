@@ -1,0 +1,86 @@
+$!init
+$!define
+
+##设置文件保存路径
+#save($serviceImplClassSavePath, $serviceImplClassName, ".java")
+
+##使用宏定义设置包后缀
+#setPackageSuffix($!serviceImplPackage)
+
+import $!{tableInfo.savePackageName}.$!entityPackage.$!{entityClassName};
+import $!{tableInfo.savePackageName}.$!paramsPackage.$!{paramsClassName};
+import $!{tableInfo.savePackageName}.$!{daoPackage}.$!{daoClassName};
+import $!{tableInfo.savePackageName}.$!{servicePackage}.$!{serviceClassName};
+import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
+import java.util.List;
+
+/**
+ * $!{tableInfo.comment}($!{entityClassName})表服务实现类
+ *
+ * @author $!author
+ * @since $!time.currTime()
+ */
+@Service
+public class $!{serviceImplClassName} implements $!{serviceClassName} {
+    @Autowired
+    private $!{daoClassName} $!{tool.firstLowerCase($!{daoClassName})};
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public $!{entityClassName} insert($!{entityClassName} $!tool.firstLowerCase($!{entityClassName})) {
+        int affectedRows = $!{tool.firstLowerCase($!{daoClassName})}.insert($!tool.firstLowerCase($!{entityClassName}));
+        return $!tool.firstLowerCase($!{entityClassName});
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public $!{entityClassName} insertSelective($!{entityClassName} $!tool.firstLowerCase($!{entityClassName})) {
+        int affectedRows = $!{tool.firstLowerCase($!{daoClassName})}.insertSelective($!tool.firstLowerCase($!{entityClassName}));
+        return $!tool.firstLowerCase($!{entityClassName});
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public int insertBatch(List<$!{entityClassName}> $!tool.firstLowerCase($!{entityClassName})List) {
+        return $!{tool.firstLowerCase($!{daoClassName})}.insertBatch($!tool.firstLowerCase($!{entityClassName})List);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public int deleteByParams($!{paramsClassName} params) {
+        return $!{tool.firstLowerCase($!{daoClassName})}.deleteByParams(params);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public int update($!{entityClassName} $!tool.firstLowerCase($!{entityClassName})) {
+        return $!{tool.firstLowerCase($!{daoClassName})}.update($!tool.firstLowerCase($!{entityClassName}));
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public int updateSelective($!{entityClassName} $!tool.firstLowerCase($!{entityClassName})) {
+        return $!{tool.firstLowerCase($!{daoClassName})}.updateSelective($!tool.firstLowerCase($!{entityClassName}));
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public int updateByParams($!{entityClassName} $!{tool.firstLowerCase($!{entityClassName})}, $!paramsClassName params, boolean selective) {
+        return $!{tool.firstLowerCase($!{daoClassName})}.updateByParams($!{tool.firstLowerCase($!{entityClassName})}, params, selective);
+    }
+#if(!$tableInfo.pkColumn.isEmpty())
+
+    @Override
+    public $entityClassName queryByPk(#foreach($column in $!{tableInfo.pkColumn})$!{tool.getClsNameByFullName($!{column.type})} $!{column.name}#if($velocityHasNext), #end#end) {
+        return $!{tool.firstLowerCase($!{daoClassName})}.queryByPk(#foreach($column in $!{tableInfo.pkColumn})$!{column.name}#if($velocityHasNext), #end#end);
+    }
+#end
+
+    @Override
+    public List<$!{entityClassName}> queryListByParams($!{paramsClassName} $!tool.firstLowerCase($!{paramsClassName})) {
+        return $!{tool.firstLowerCase($!{daoClassName})}.queryListByParams($!tool.firstLowerCase($!{paramsClassName}));
+    }
+
+}

@@ -1,0 +1,85 @@
+## 初始化区域
+## 是否使用lombok
+#set($useLombok = true)
+## 是否生成get和set方法
+#set($genGetMethod = false)
+#set($genSetMethod = false)
+## 是否去掉表前缀
+#set($trimTablePrefix = false)
+## 定义表前缀列表
+#set($tablePrefixs = $tool.newHashSet("t_"))
+
+## 去掉表的t_前缀
+#if($!trimTablePrefix)
+    #foreach($tablePrefix in $!tablePrefixs)
+        #if($tableInfo.obj.name.startsWith($tablePrefix))
+            $tableInfo.setName($tool.getClassName($tableInfo.obj.name.replaceFirst("^${tablePrefix}", "")))
+            #break
+        #end
+    #end
+#end
+
+#### 定义包名
+#set($controllerPackage = "controller")
+#set($servicePackage = "service")
+#set($serviceImplPackage = "service.impl")
+#set($managerPackage = "manager")
+#set($daoPackage = "mapper")
+#set($entityPackage = "entity")
+#set($paramsPackage = "objects.params")
+#set($assemblerPackage = "assembler")
+
+#### 定义类名
+#set($entityClassName = $tool.append($tableInfo.name))
+#set($controllerClassName = $tool.append($entityClassName, "Controller"))
+#set($serviceClassName = $tool.append($entityClassName, "Service"))
+#set($serviceImplClassName = $tool.append($entityClassName, "ServiceImpl"))
+#set($managerClassName = $tool.append($entityClassName, "Manager"))
+#set($daoClassName = $tool.append($entityClassName, "Mapper"))
+#set($paramsClassName = "Query${entityClassName}Params")
+#set($assemblerClassName = "${entityClassName}Assembler")
+
+#### 文件保存路径
+#set($controllerClassSavePath = "/${controllerPackage.replace('.', '/')}")
+#set($serviceClassSavePath = "/${servicePackage.replace('.', '/')}")
+#set($serviceImplClassSavePath = "/${serviceImplPackage.replace('.', '/')}")
+#set($managerClassSavePath = "/${managerPackage.replace('.', '/')}")
+#set($daoClassSavePath = "/${daoPackage.replace('.', '/')}")
+#set($entityClassSavePath = "/${entityPackage.replace('.', '/')}")
+#set($paramsClassSavePath = "/${paramsPackage.replace('.', '/')}")
+#set($assemblerClassSavePath = "/${assemblerPackage.replace('.', '/')}")
+
+## 生成时要排除的列
+#set($excludeFields = $tool.newHashSet())
+
+##########################################
+
+## 参考阿里巴巴开发手册，POJO 类中布尔类型的变量，都不要加 is 前缀，否则部分框架解析会引起序列化错误
+#foreach($column in $tableInfo.fullColumn)
+    #if($column.name.startsWith("is") && $column.type.equals("java.lang.Boolean"))
+        $!column.setName($tool.firstLowerCase($column.name.replaceFirst("^is", "")))
+    #end
+#end
+
+## 实现动态排除列
+#foreach($field in $!excludeFields)
+    #set($newList = $tool.newArrayList())
+    #foreach($column in $tableInfo.fullColumn)
+        #if($column.name != $field)
+            ## 带有返回值的方法调用时使用$tool.call来消除返回值
+            $tool.call($newList.add($column))
+        #end
+    #end
+    ## 重新保存
+    $tableInfo.setFullColumn($newList)
+#end
+
+## 对表中字段映射的Java类型进行导包
+#set($importList = $tool.newHashSet())
+#foreach($column in $tableInfo.fullColumn)
+    ## 非lang包下的类并且不是byte[]需要导包
+    #if(!$column.type.startsWith("java.lang.") && !$column.type.equals("byte[]"))
+        ##带有返回值的方法调用时使用$tool.call来消除返回值
+        $tool.call($importList.add($column.type))
+    #end
+#end

@@ -1,0 +1,39 @@
+##引入宏定义
+$!init
+$!define
+
+##设置文件保存路径
+#save($entityClassSavePath, $entityClassName, ".java")
+
+##使用宏定义设置包后缀
+#setPackageSuffix($!entityPackage)
+
+##使用全局变量实现默认包导入
+$!autoImport
+import java.io.Serializable;
+
+##使用宏定义实现类注释信息
+#tableComment("实体类")
+## 是否使用Lombok
+#if($useLombok)
+#importLombok()
+#end
+public class $!{entityClassName} implements Serializable {
+    private static final long serialVersionUID = $!tool.serial();
+#foreach($column in $tableInfo.fullColumn)
+#if(${column.comment})    /**
+     * ${column.comment}
+     */#end
+
+    private $!{tool.getClsNameByFullName($column.type)} $!{column.name};
+#end
+## 是否生成get和set方法
+## 使用宏定义实现get,set方法
+#if($genGetMethod || $genSetMethod)
+#foreach($column in $tableInfo.fullColumn)
+#if($genGetMethod)#getMethod($!{tool.getClsNameByFullName($column.type)}, $!{column.name})#end
+#if($genSetMethod)#setMethod($!{tool.getClsNameByFullName($column.type)}, $!{column.name})#end
+#end
+#end
+
+}
