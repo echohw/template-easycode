@@ -1,6 +1,6 @@
-##针对Mybatis 进行支持，主要用于生成xml文件
+## 针对MyBatis进行支持，主要用于生成xml文件
 #foreach($column in $tableInfo.fullColumn)
-    ##储存列类型
+    ## 储存列类型
     #set($sqlType = $tool.getField($column.obj.dataType, "typeName"))
     $tool.call($column.ext.put("sqlType", $sqlType))
     #if($tool.newHashSet("tinyint").contains($sqlType))
@@ -24,7 +24,7 @@
     #elseif($tool.newHashSet("timestamp", "datetime").contains($sqlType))
         #set($jdbcType="TIMESTAMP")
     #elseif($tool.newHashSet("char").contains($sqlType))
-        #set($jdbcType="CHAR")
+        #set($jdbcType="VARCHAR")
     #elseif($tool.newHashSet("varchar", "tinytext").contains($sqlType))
         #set($jdbcType="VARCHAR")
     #elseif($tool.newHashSet("text", "mediumtext", "longtext").contains($sqlType))
@@ -34,20 +34,8 @@
     #elseif($tool.newHashSet("blob", "mediumblob", "longblob").contains($sqlType))
         #set($jdbcType="LONGVARBINARY")
     #else
-        ##其他类型
-        #set($jdbcType="OTHER")
+        ## 其他类型
+        #set($jdbcType="VARCHAR")
     #end
     $tool.call($column.ext.put("jdbcType", $jdbcType))
 #end
-
-##### 定义宏，查询所有列
-#set($brLimit = 5)
-#set($linePrefix = "        ")
-## SQL列
-#macro(allSqlColumn)#foreach($column in $tableInfo.fullColumn)#if($velocityCount != 1 && (($velocityCount - 1) % $brLimit == 0))
-
-#end#if($velocityCount % $brLimit == 1)$linePrefix#end`$column.obj.name`#if($velocityHasNext), #end#end#end
-## MyBatis列
-#macro(allMyBatisColumn)#foreach($column in $tableInfo.fullColumn)#if($velocityCount != 1 && (($velocityCount - 1) % $brLimit == 0))
-
-#end#if($velocityCount % $brLimit == 1)$linePrefix#end#{$!{column.name},jdbcType=$!{column.ext.jdbcType}}#if($velocityHasNext), #end#end#end

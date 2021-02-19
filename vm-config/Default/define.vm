@@ -1,51 +1,50 @@
 ##（Velocity宏定义）
 
-##定义设置表名后缀的宏定义，调用方式：#setTableSuffix("Test")
-#macro(setTableSuffix $suffix)
-    #set($tableName = $tool.append($tableInfo.name, $suffix))
-#end
-
-##定义设置包名后缀的宏定义，调用方式：#setPackageSuffix("Test")
-#macro(setPackageSuffix $suffix)
-#if($suffix != "")package #end#if($tableInfo.savePackageName != "")$!{tableInfo.savePackageName}#end#if($suffix != "").$suffix#end;
-#end
-
-##定义直接保存路径与文件名简化的宏定义，调用方式：#save("/entity", "Example", ".java")
+## 定义直接保存路径与文件名简化的宏定义，调用方式：#save("/entity", "User", ".java")
 #macro(save $path $fileName $suffix)
-    $!callback.setSavePath($tool.append($tableInfo.savePath, $path))
-    $!callback.setFileName($tool.append($fileName, $suffix))
+    $callback.setSavePath($tool.append($tableInfo.savePath, $path))
+    $callback.setFileName($tool.append($fileName, $suffix))
 #end
 
-##定义表注释的宏定义，调用方式：#tableComment("注释信息")
-#macro(tableComment $desc)
+## 定义打印及打印并换行的宏定义
+#macro(print $str)$!str#end
+#macro(println $str)$!str
+#end
+#macro(lnprint $str)
+
+$!str#end
+
+## 定义类注释的宏定义，调用方式：#classDescription("描述信息")
+#macro(classDescription $desc)
 /**
- * $!{tableInfo.comment}($!{tableInfo.name})$desc
+#if($tool.isNotBlank($desc))
+ * $desc
  *
- * @author $!author
- * @since $!time.currTime()
+#end
+ * Created by $!author on ${time.currTime()}
  */
 #end
 
-##定义GET方法的宏定义，调用方式：#getMethod($column)
-#macro(getMethod $columnType $columnName)
-
+## 定义GET方法的宏定义，调用方式：#getMethod($column)
+#macro(generateGetterMethod $columnType $columnName)
     public $columnType get$!{tool.firstUpperCase($columnName)}() {
         return $columnName;
     }
 #end
 
-##定义SET方法的宏定义，调用方式：#setMethod($column)
-#macro(setMethod $columnType $columnName)
-
+## 定义SET方法的宏定义，调用方式：#setMethod($column)
+#macro(generateSetterMethod $columnType $columnName)
     public void set$!{tool.firstUpperCase($columnName)}($columnType $columnName) {
         this.$columnName = $columnName;
     }
 #end
 
-## 使用Lombok注解
-#macro(importLombok)
-@lombok.Data
-@lombok.NoArgsConstructor
-@lombok.AllArgsConstructor
-@lombok.experimental.Accessors(chain = true)
+## 输出Table的所有列
+#macro(printAllColumn $linePreSpace $lineItemLimit)
+#foreach($column in $tableInfo.fullColumn)#if($velocityCount % $lineItemLimit == 1)#print($linePreSpace)#end`$column.obj.name`#if($velocityHasNext), #end#if($velocityCount % $lineItemLimit == 0 && $velocityHasNext)#println("")#end#end#println("")
+#end
+
+## 输出Table的所有列所对应的属性
+#macro(printAllField $linePreSpace $lineItemLimit)
+#foreach($column in $tableInfo.fullColumn)#if($velocityCount % $lineItemLimit == 1)#print($linePreSpace)#end#{${column.name},jdbcType=${column.ext.jdbcType}}#if($velocityHasNext), #end#if($velocityCount % $lineItemLimit == 0 && $velocityHasNext)#println("")#end#end#println("")
 #end

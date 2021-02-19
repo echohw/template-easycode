@@ -1,9 +1,13 @@
 ## 初始化区域
 ## 是否使用lombok
 #set($useLombok = true)
-## 是否生成get和set方法
-#set($genGetMethod = false)
-#set($genSetMethod = false)
+## 是否使用Swagger
+#set($useSwagger = true)
+## 是否允许批量执行sql
+#set($allowMultiQueries = true)
+## 是否生成getter和setter方法
+#set($generateGetterMethod = false)
+#set($generateSetterMethod = false)
 ## 是否去掉表前缀
 #set($trimTablePrefix = false)
 ## 定义表前缀列表
@@ -19,34 +23,40 @@
     #end
 #end
 
-#### 定义包名
-#set($controllerPackage = "controller")
+## 定义包名
+#set($entityPackage = "entity")
+#set($mapperPackage = "mapper")
+#set($managerPackage = "manager")
 #set($servicePackage = "service")
 #set($serviceImplPackage = "service.impl")
-#set($managerPackage = "manager")
-#set($daoPackage = "mapper")
-#set($entityPackage = "entity")
-#set($paramsPackage = "objects.params")
-#set($assemblerPackage = "assembler")
+#set($controllerPackage = "controller")
+#set($dtoPackage = "objects.dto")
+#set($inVoPackage = "objects.vo")
+#set($outVoPackage = "objects.vo")
+#set($assemblerPackage = "objects")
 
-#### 定义类名
-#set($entityClassName = $tool.append($tableInfo.name))
-#set($controllerClassName = $tool.append($entityClassName, "Controller"))
+## 定义类名
+#set($entityClassName = $tool.append($tableInfo.name, ""))
+#set($mapperClassName = $tool.append($entityClassName, "Mapper"))
+#set($managerClassName = $tool.append($entityClassName, "Manager"))
 #set($serviceClassName = $tool.append($entityClassName, "Service"))
 #set($serviceImplClassName = $tool.append($entityClassName, "ServiceImpl"))
-#set($managerClassName = $tool.append($entityClassName, "Manager"))
-#set($daoClassName = $tool.append($entityClassName, "Mapper"))
-#set($paramsClassName = "Query${entityClassName}Params")
-#set($assemblerClassName = "${entityClassName}Assembler")
+#set($controllerClassName = $tool.append($entityClassName, "Controller"))
+#set($dtoClassName = $tool.append($entityClassName, "DTO"))
+#set($inVoClassName = $tool.append($entityClassName, "InVO"))
+#set($outVoClassName = $tool.append($entityClassName, "OutVO"))
+#set($assemblerClassName = $tool.append($entityClassName, "Assembler"))
 
-#### 文件保存路径
-#set($controllerClassSavePath = "/${controllerPackage.replace('.', '/')}")
+## 文件保存路径
+#set($entityClassSavePath = "/${entityPackage.replace('.', '/')}")
+#set($mapperClassSavePath = "/${mapperPackage.replace('.', '/')}")
+#set($managerClassSavePath = "/${managerPackage.replace('.', '/')}")
 #set($serviceClassSavePath = "/${servicePackage.replace('.', '/')}")
 #set($serviceImplClassSavePath = "/${serviceImplPackage.replace('.', '/')}")
-#set($managerClassSavePath = "/${managerPackage.replace('.', '/')}")
-#set($daoClassSavePath = "/${daoPackage.replace('.', '/')}")
-#set($entityClassSavePath = "/${entityPackage.replace('.', '/')}")
-#set($paramsClassSavePath = "/${paramsPackage.replace('.', '/')}")
+#set($controllerClassSavePath = "/${controllerPackage.replace('.', '/')}")
+#set($dtoClassSavePath = "/${dtoPackage.replace('.', '/')}")
+#set($inVoClassSavePath = "/${inVoPackage.replace('.', '/')}")
+#set($outVoClassSavePath = "/${outVoPackage.replace('.', '/')}")
 #set($assemblerClassSavePath = "/${assemblerPackage.replace('.', '/')}")
 
 ## 生成时要排除的列
@@ -79,7 +89,14 @@
 #foreach($column in $tableInfo.fullColumn)
     ## 非lang包下的类并且不是byte[]需要导包
     #if(!$column.type.startsWith("java.lang.") && !$column.type.equals("byte[]"))
-        ##带有返回值的方法调用时使用$tool.call来消除返回值
+        ## 带有返回值的方法调用时使用$tool.call来消除返回值
         $tool.call($importList.add($column.type))
     #end
+#end
+
+## 修改要导入的包列表
+#if($useLombok)
+    $tool.call($importList.add("lombok.Getter"))
+    $tool.call($importList.add("lombok.Setter"))
+    $tool.call($importList.add("lombok.ToString"))
 #end

@@ -1,0 +1,43 @@
+## 引入自定义变量及宏定义
+$!init
+$!define
+
+## 设置文件保存路径
+#save($inVoClassSavePath, $inVoClassName, ".java")
+
+## 定义包路径
+$tool.charSeqJoin(".", "package ", ";", false, $tableInfo.savePackageName, $inVoPackage)
+
+## 使用全局变量实现默认包导入
+$!autoImport
+#if($useSwagger)
+    import io.swagger.annotations.ApiModel;
+    import io.swagger.annotations.ApiModelProperty;
+#end
+
+## 使用宏定义实现类注释信息
+#if($useSwagger)#classDescription("")#else#classDescription($tableInfo.comment)#end
+## 如果使用了Lombok,则在类上添加Lombok的注解
+#if($useLombok)
+    @Getter
+    @Setter
+    @ToString
+#end
+#if($useSwagger)
+    @ApiModel(value = "$inVoClassName", description = "$tableInfo.comment")
+#end
+public class $inVoClassName {
+
+    #foreach($column in $tableInfo.fullColumn)
+        #if($useSwagger)@ApiModelProperty(name = "$column.name", value = "#if($!{tool.isNotBlank($column.comment)})$tool.replaceLineBreak($column.comment, " ")#else$column.name#end", required = true)#println("")#end
+        private $tool.getClsNameByFullName($column.type) $!{column.name};#if(!$useSwagger && $!{tool.isNotBlank($column.comment)}) // $!{tool.replaceLineBreak($column.comment, " ")}#end#println("")
+    #end
+
+    ## 使用宏定义实现getter、setter方法
+    #if($generateGetterMethod || $generateSetterMethod)
+        #foreach($column in $tableInfo.fullColumn)
+            #if($generateGetterMethod)#generateGetterMethod($tool.getClsNameByFullName($column.type), $column.name)#end
+            #if($generateSetterMethod)#generateSetterMethod($tool.getClsNameByFullName($column.type), $column.name)#end
+        #end
+    #end
+}

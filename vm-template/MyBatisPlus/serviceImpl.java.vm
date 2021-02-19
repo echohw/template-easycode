@@ -1,0 +1,22 @@
+## 导入宏定义
+$!init
+$!define
+
+## 设置文件保存路径
+#save($serviceImplClassSavePath, $serviceImplClassName, ".java")
+
+## 使用宏定义设置包后缀
+#setPackageSuffix($!serviceImplPackage)
+
+import $!{tableInfo.savePackageName}.$!entityPackage.$!{entityClassName};
+import $!{tableInfo.savePackageName}.$!{daoPackage}.$!{daoClassName};
+import $!{tableInfo.savePackageName}.$!{servicePackage}.$!{serviceClassName};
+import org.springframework.stereotype.Service;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+
+## 类注释
+#tableComment("表服务实现类")
+@Service
+public class $serviceImplClassName extends ServiceImpl<$daoClassName, $entityClassName> implements $serviceClassName {
+
+}

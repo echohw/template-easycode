@@ -1,0 +1,18 @@
+## 导入宏定义
+$!init
+$!define
+
+## 设置文件保存路径
+#save($serviceClassSavePath, $serviceClassName, ".java")
+
+#if($!{tableInfo.savePackageName})package $!{tableInfo.savePackageName}.#end$!{servicePackage};
+
+import $!{tableInfo.savePackageName}.$!{entityPackage}.$!{entityClassName};
+import java.util.List;
+import com.baomidou.mybatisplus.extension.service.IService;
+
+## 类注释
+#tableComment("表服务接口")
+public interface $serviceClassName extends IService<$entityClassName> {
+
+}

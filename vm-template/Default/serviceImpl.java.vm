@@ -1,86 +1,69 @@
+## 引入自定义变量及宏定义
 $!init
 $!define
 
-##设置文件保存路径
+## 设置文件保存路径
 #save($serviceImplClassSavePath, $serviceImplClassName, ".java")
 
-##使用宏定义设置包后缀
-#setPackageSuffix($!serviceImplPackage)
+## 定义包路径
+$tool.charSeqJoin(".", "package ", ";", false, $tableInfo.savePackageName, $serviceImplPackage)
 
-import $!{tableInfo.savePackageName}.$!entityPackage.$!{entityClassName};
-import $!{tableInfo.savePackageName}.$!paramsPackage.$!{paramsClassName};
-import $!{tableInfo.savePackageName}.$!{daoPackage}.$!{daoClassName};
-import $!{tableInfo.savePackageName}.$!{servicePackage}.$!{serviceClassName};
+$tool.charSeqJoin(".", "import ", ";", false, $tableInfo.savePackageName, $servicePackage, $serviceClassName)
+$tool.charSeqJoin(".", "import ", ";", false, $tableInfo.savePackageName, $managerPackage, $managerClassName)
+$tool.charSeqJoin(".", "import ", ";", false, $tableInfo.savePackageName, $entityPackage, $entityClassName)
+$tool.charSeqJoin(".", "import ", ";", false, $tableInfo.savePackageName, $dtoPackage, $dtoClassName)
+$tool.charSeqJoin(".", "import ", ";", false, $tableInfo.savePackageName, $assemblerPackage, $assemblerClassName)
 import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
+import java.util.stream.Collectors;
 
-/**
- * $!{tableInfo.comment}($!{entityClassName})表服务实现类
- *
- * @author $!author
- * @since $!time.currTime()
- */
+## 使用宏定义实现类注释信息
+#classDescription("")
 @Service
-public class $!{serviceImplClassName} implements $!{serviceClassName} {
+public class $serviceImplClassName implements $serviceClassName {
     @Autowired
-    private $!{daoClassName} $!{tool.firstLowerCase($!{daoClassName})};
+    private $managerClassName $!{tool.firstLowerCase($managerClassName)};
+    @Autowired
+    private $assemblerClassName $!{tool.firstLowerCase($assemblerClassName)};
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public $!{entityClassName} insert($!{entityClassName} $!tool.firstLowerCase($!{entityClassName})) {
-        int affectedRows = $!{tool.firstLowerCase($!{daoClassName})}.insert($!tool.firstLowerCase($!{entityClassName}));
-        return $!tool.firstLowerCase($!{entityClassName});
-    }
-
-    @Override
-    @Transactional(rollbackFor = Exception.class)
-    public $!{entityClassName} insertSelective($!{entityClassName} $!tool.firstLowerCase($!{entityClassName})) {
-        int affectedRows = $!{tool.firstLowerCase($!{daoClassName})}.insertSelective($!tool.firstLowerCase($!{entityClassName}));
-        return $!tool.firstLowerCase($!{entityClassName});
-    }
-
-    @Override
-    @Transactional(rollbackFor = Exception.class)
-    public int insertBatch(List<$!{entityClassName}> $!tool.firstLowerCase($!{entityClassName})List) {
-        return $!{tool.firstLowerCase($!{daoClassName})}.insertBatch($!tool.firstLowerCase($!{entityClassName})List);
-    }
-
-    @Override
-    @Transactional(rollbackFor = Exception.class)
-    public int deleteByParams($!{paramsClassName} params) {
-        return $!{tool.firstLowerCase($!{daoClassName})}.deleteByParams(params);
-    }
-
-    @Override
-    @Transactional(rollbackFor = Exception.class)
-    public int update($!{entityClassName} $!tool.firstLowerCase($!{entityClassName})) {
-        return $!{tool.firstLowerCase($!{daoClassName})}.update($!tool.firstLowerCase($!{entityClassName}));
-    }
-
-    @Override
-    @Transactional(rollbackFor = Exception.class)
-    public int updateSelective($!{entityClassName} $!tool.firstLowerCase($!{entityClassName})) {
-        return $!{tool.firstLowerCase($!{daoClassName})}.updateSelective($!tool.firstLowerCase($!{entityClassName}));
-    }
-
-    @Override
-    @Transactional(rollbackFor = Exception.class)
-    public int updateByParams($!{entityClassName} $!{tool.firstLowerCase($!{entityClassName})}, $!paramsClassName params, boolean selective) {
-        return $!{tool.firstLowerCase($!{daoClassName})}.updateByParams($!{tool.firstLowerCase($!{entityClassName})}, params, selective);
+    public $dtoClassName add($dtoClassName $!{tool.firstLowerCase($dtoClassName)}) {
+        $entityClassName $tool.firstLowerCase($entityClassName) = $!{tool.firstLowerCase($assemblerClassName)}.assemble($!{tool.firstLowerCase($dtoClassName)});
+        int affectedRows = $!{tool.firstLowerCase($managerClassName)}.insert($!{tool.firstLowerCase($entityClassName)});
+        return $!{tool.firstLowerCase($assemblerClassName)}.assembleDTO($!{tool.firstLowerCase($entityClassName)});
     }
 #if(!$tableInfo.pkColumn.isEmpty())
 
     @Override
-    public $entityClassName queryByPk(#foreach($column in $!{tableInfo.pkColumn})$!{tool.getClsNameByFullName($!{column.type})} $!{column.name}#if($velocityHasNext), #end#end) {
-        return $!{tool.firstLowerCase($!{daoClassName})}.queryByPk(#foreach($column in $!{tableInfo.pkColumn})$!{column.name}#if($velocityHasNext), #end#end);
+    @Transactional(rollbackFor = Exception.class)
+    public int deleteByPk(#foreach($column in $tableInfo.pkColumn)$tool.getClsNameByFullName($column.type) $column.name#if($velocityHasNext), #end#end) {
+        return $!{tool.firstLowerCase($managerClassName)}.deleteByPk(#foreach($column in $tableInfo.pkColumn)$column.name#if($velocityHasNext), #end#end);
+    }
+#end
+#if(!$tableInfo.pkColumn.isEmpty())
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public int updateByPk($dtoClassName $!{tool.firstLowerCase($dtoClassName)}) {
+        $entityClassName $tool.firstLowerCase($entityClassName) = $!{tool.firstLowerCase($assemblerClassName)}.assemble($!{tool.firstLowerCase($dtoClassName)});
+        return $!{tool.firstLowerCase($managerClassName)}.updateByPk($!{tool.firstLowerCase($entityClassName)});
+    }
+#end
+#if(!$tableInfo.pkColumn.isEmpty())
+
+    @Override
+    public $dtoClassName queryByPk(#foreach($column in $tableInfo.pkColumn)$tool.getClsNameByFullName($column.type) $column.name#if($velocityHasNext), #end#end) {
+        $entityClassName $tool.firstLowerCase($entityClassName) = $!{tool.firstLowerCase($managerClassName)}.selectByPk(#foreach($column in $tableInfo.pkColumn)$column.name#if($velocityHasNext), #end#end);
+        return $!{tool.firstLowerCase($assemblerClassName)}.assembleDTO($!{tool.firstLowerCase($entityClassName)});
     }
 #end
 
     @Override
-    public List<$!{entityClassName}> queryListByParams($!{paramsClassName} $!tool.firstLowerCase($!{paramsClassName})) {
-        return $!{tool.firstLowerCase($!{daoClassName})}.queryListByParams($!tool.firstLowerCase($!{paramsClassName}));
+    public List<$!{dtoClassName}> queryAll(Object params) {
+        List<$!{entityClassName}> $!{tool.firstLowerCase($entityClassName)}s = $!{tool.firstLowerCase($managerClassName)}.selectAll(params);
+        return $!{tool.firstLowerCase($entityClassName)}s.stream().map($!{tool.firstLowerCase($assemblerClassName)}::assembleDTO).collect(Collectors.toList());
     }
-
 }

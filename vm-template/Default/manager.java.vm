@@ -1,0 +1,49 @@
+## 引入自定义变量及宏定义
+$!init
+$!define
+
+## 设置文件保存路径
+#save($managerClassSavePath, $managerClassName, ".java")
+
+## 定义包路径
+$tool.charSeqJoin(".", "package ", ";", false, $tableInfo.savePackageName, $managerPackage)
+
+$tool.charSeqJoin(".", "import ", ";", false, $tableInfo.savePackageName, $mapperPackage, $mapperClassName)
+$tool.charSeqJoin(".", "import ", ";", false, $tableInfo.savePackageName, $entityPackage, $entityClassName)
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+import java.util.List;
+
+## 使用宏定义实现类注释信息
+#classDescription("")
+@Component
+public class $managerClassName {
+    @Autowired
+    private $mapperClassName $!{tool.firstLowerCase($mapperClassName)};
+
+    public int insert($entityClassName $!{tool.firstLowerCase($entityClassName)}) {
+        return $!{tool.firstLowerCase($mapperClassName)}.insertSelective($!{tool.firstLowerCase($entityClassName)});
+    }
+#if(!$tableInfo.pkColumn.isEmpty())
+
+    public int deleteByPk(#foreach($column in $tableInfo.pkColumn)$tool.getClsNameByFullName($column.type) $column.name#if($velocityHasNext), #end#end) {
+        return $!{tool.firstLowerCase($mapperClassName)}.deleteByPk(#foreach($column in $tableInfo.pkColumn)$column.name#if($velocityHasNext), #end#end);
+    }
+#end
+#if(!$tableInfo.pkColumn.isEmpty())
+
+    public int updateByPk($entityClassName $!{tool.firstLowerCase($entityClassName)}) {
+        return $!{tool.firstLowerCase($mapperClassName)}.updateSelectiveByPk($!{tool.firstLowerCase($entityClassName)});
+    }
+#end
+#if(!$tableInfo.pkColumn.isEmpty())
+
+    public $entityClassName selectByPk(#foreach($column in $tableInfo.pkColumn)$tool.getClsNameByFullName($column.type) $column.name#if($velocityHasNext), #end#end) {
+        return $!{tool.firstLowerCase($mapperClassName)}.selectByPk(#foreach($column in $tableInfo.pkColumn)$column.name#if($velocityHasNext), #end#end);
+    }
+#end
+
+    public List<$!{entityClassName}> selectAll(Object params) {
+        return $!{tool.firstLowerCase($mapperClassName)}.selectAll(params);
+    }
+}

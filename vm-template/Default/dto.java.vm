@@ -3,10 +3,10 @@ $!init
 $!define
 
 ## 设置文件保存路径
-#save($entityClassSavePath, $entityClassName, ".java")
+#save($dtoClassSavePath, $dtoClassName, ".java")
 
 ## 定义包路径
-$tool.charSeqJoin(".", "package ", ";", false, $tableInfo.savePackageName, $entityPackage)
+$tool.charSeqJoin(".", "package ", ";", false, $tableInfo.savePackageName, $dtoPackage)
 
 ## 使用全局变量实现默认包导入
 $!autoImport
@@ -20,7 +20,7 @@ import java.io.Serializable;
     @Setter
     @ToString
 #end
-public class $entityClassName implements Serializable {
+public class $dtoClassName implements Serializable {
 
     private static final long serialVersionUID = $!{tool.serial()};
     #foreach($column in $tableInfo.fullColumn)

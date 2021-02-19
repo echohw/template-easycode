@@ -1,194 +1,185 @@
-##引入mybatis支持
+## 引入自定义变量、宏定义及MyBatis支持
 $!init
+$!define
 $!mybatisSupport
 
-##设置保存名称与保存位置
-$!callback.setSavePath($tool.append($modulePath, "/src/main/resources/mapper"))
-$!callback.setFileName($tool.append($daoClassName, ".xml"))
+## 不要格式化代码(默认为true)
+$callback.setReformat(false)
+
+## 设置保存名称与保存位置
+$!callback.setSavePath($tool.append($modulePath, "/src/main/resources", "/mapper"))
+$!callback.setFileName($tool.append($mapperClassName, ".xml"))
 
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="$!{tableInfo.savePackageName}.$!{daoPackage}.$!{daoClassName}">
+<mapper namespace="$tool.charSeqJoin('.', '', '', false, $!{tableInfo.savePackageName}, $!{mapperPackage}, $!{mapperClassName})">
 
-    <!--ResultMap-->
-    <resultMap id="$!{entityClassName}ResultMap" type="$!{tableInfo.savePackageName}.$!{entityPackage}.$!{entityClassName}">
+  <resultMap id="BaseResultMap" type="$tool.charSeqJoin('.', '', '', false, $!{tableInfo.savePackageName}, $!{entityPackage}, $!{entityClassName})">
 #foreach($column in $tableInfo.pkColumn)
-      <id column="$!{column.obj.name}" property="$!{column.name}" jdbcType="$!{column.ext.jdbcType}"/>
+    <id column="$!{column.obj.name}" property="$!{column.name}" jdbcType="$!{column.ext.jdbcType}"/>
 #end
 #foreach($column in $tableInfo.otherColumn)
-      <result column="$!{column.obj.name}" property="$!{column.name}" jdbcType="$!{column.ext.jdbcType}"/>
+    <result column="$!{column.obj.name}" property="$!{column.name}" jdbcType="$!{column.ext.jdbcType}"/>
 #end
-    </resultMap>
+  </resultMap>
 
-    <!--Query查询子句-->
-    <sql id="QueryByParamsWhereClause">
-      <where>
+  <sql id="Base_Column_List">
+#printAllColumn("    ", 5)
+  </sql>
+
+  <!-- 新增 -->
+  <insert id="insert" parameterType="$tool.charSeqJoin('.', '', '', false, $!{tableInfo.savePackageName}, $!{entityPackage}, $!{entityClassName})">
+    insert into $!{tableInfo.obj.name} (
+#printAllColumn("      ", 5)
+    )
+    values (
+#printAllField("      ", 5)
+    )
+  </insert>
+
+  <!-- 有选择的新增 -->
+  <insert id="insertSelective" parameterType="$tool.charSeqJoin('.', '', '', false, $!{tableInfo.savePackageName}, $!{entityPackage}, $!{entityClassName})">
+    insert into $!{tableInfo.obj.name}
+    <trim prefix="(" suffix=")" suffixOverrides=",">
 #foreach($column in $tableInfo.fullColumn)
-        <if test="${column.name} != null#if($column.type.equals("java.lang.String")) and $!column.name != ''#end">
-          and `$!{column.obj.name}` = #{$!{column.name},jdbcType=$!{column.ext.jdbcType}}
-        </if>
-#if($!{column.ext.genLikeProp} && ${column.type.equals("java.lang.String")})
-        <if test="(${column.name} == null or ${column.name} == '') and ${column.name}Like != null and ${column.name}Like != ''">
-          and `$!{column.obj.name}` like binary concat('%', #{$!{column.name}Like}, '%')
-        </if>
+      <if test="${column.name} != null#if($column.type.equals("java.lang.String")) and $!column.name != ''#end">
+        `$!{column.obj.name}`,
+      </if>
 #end
-#if($!{column.ext.genInProp})
-        <if test="(${column.name} == null#if($column.type.equals("java.lang.String")) or $!column.name == ''#end) and ${column.name}s != null and ${column.name}s.size() > 0">
-          <foreach collection="${column.name}s" index="index" item="item" open="and ${column.obj.name} in (" separator="," close=")">
-            #{item}
-          </foreach>
-        </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+#foreach($column in $tableInfo.fullColumn)
+      <if test="${column.name} != null#if($column.type.equals("java.lang.String")) and $!column.name != ''#end">
+        #{$!{column.name},jdbcType=$!{column.ext.jdbcType}},
+      </if>
 #end
-#end
-      </where>
-    </sql>
+    </trim>
+  </insert>
 
-    <!--新增-->
-    <insert id="insert" parameterType="$!{tableInfo.savePackageName}.$!{entityPackage}.$!{entityClassName}">
-      insert into $!{tableInfo.obj.name} (
-#allSqlColumn()
-
+  <!-- 批量新增 -->
+  <insert id="batchInsert" parameterType="java.util.Collection">
+    insert into $!{tableInfo.obj.name} (
+#printAllColumn("      ", 5)
+    )
+    values
+    <foreach collection="list" index="index" item="item" open="" close="" separator=",">
+      (
+#foreach($column in $tableInfo.fullColumn)
+        #{item.$!{column.name},jdbcType=$!{column.ext.jdbcType}}#if($velocityHasNext), #end#println("")
+#end
       )
-      values (
-#allMyBatisColumn()
+    </foreach>
+  </insert>
+#if($allowMultiQueries)
 
-      )
-    </insert>
-
-    <!--有选择的新增-->
-    <insert id="insertSelective" parameterType="$!{tableInfo.savePackageName}.$!{entityPackage}.$!{entityClassName}">
+  <!-- 批量有选择的新增 -->
+  <insert id="batchInsertSelective" parameterType="java.util.Collection">
+    <foreach collection="list" index="index" item="item" open="" close="" separator=";">
       insert into $!{tableInfo.obj.name}
       <trim prefix="(" suffix=")" suffixOverrides=",">
 #foreach($column in $tableInfo.fullColumn)
-        <if test="${column.name} != null#if($column.type.equals("java.lang.String")) and $!column.name != ''#end">
+        <if test="item.${column.name} != null#if($column.type.equals("java.lang.String")) and item.$!{column.name} != ''#end">
           `$!{column.obj.name}`,
         </if>
 #end
       </trim>
       <trim prefix="values (" suffix=")" suffixOverrides=",">
 #foreach($column in $tableInfo.fullColumn)
-        <if test="${column.name} != null#if($column.type.equals("java.lang.String")) and $!column.name != ''#end">
-          #{$!{column.name},jdbcType=$!{column.ext.jdbcType}},
+        <if test="item.${column.name} != null#if($column.type.equals("java.lang.String")) and item.$!{column.name} != ''#end">
+          #{item.$!{column.name},jdbcType=$!{column.ext.jdbcType}},
         </if>
 #end
       </trim>
-    </insert>
-
-    <!--批量新增-->
-    <insert id="insertBatch" parameterType="java.util.List">
-      insert into $!{tableInfo.obj.name}
-      <trim prefix="(" suffix=")" suffixOverrides="">
-#allSqlColumn()
-
-      </trim>
-      values
-      <foreach collection="list" index="index" item="item" open="" close="" separator=",">
-        (#foreach($column in $tableInfo.fullColumn)#{item.$!{column.name},jdbcType=$!{column.ext.jdbcType}}#if($velocityHasNext), #end#end)
-      </foreach>
-    </insert>
-
-    <!--根据条件删除-->
-    <delete id="deleteByParams" parameterType="$!{tableInfo.savePackageName}.$!{paramsPackage}.$!{paramsClassName}">
-      delete from $!{tableInfo.obj.name}
-      <include refid="QueryByParamsWhereClause" />
-    </delete>
-
+    </foreach>
+  </insert>
+#end
 #if(!$tableInfo.pkColumn.isEmpty())
-    <!--根据主键进行更新-->
-    <update id="update" parameterType="$!{tableInfo.savePackageName}.$!{entityPackage}.$!{entityClassName}">
-      update $!{tableInfo.obj.name} set
-      <trim prefix="" suffix="" suffixOverrides=",">
+
+  <!-- 根据主键进行删除 -->
+  <delete id="deleteByPk">
+    delete from $!{tableInfo.obj.name}
+    where #foreach($column in $tableInfo.pkColumn)`$!{column.obj.name}` = #{$!{column.name},jdbcType=$!{column.ext.jdbcType}}#if($velocityHasNext) and #end#end#println("")
+  </delete>
+#end
+#if(!$tableInfo.pkColumn.isEmpty())
+
+  <!-- 根据主键进行更新 -->
+  <update id="updateByPk" parameterType="$!{tableInfo.savePackageName}.$!{entityPackage}.$!{entityClassName}">
+    update $!{tableInfo.obj.name}
+    set
 #foreach($column in $tableInfo.otherColumn)
-        `$!{column.obj.name}` = #{$!{column.name},jdbcType=$!{column.ext.jdbcType}},
+      `$!{column.obj.name}` = #{$!{column.name},jdbcType=$!{column.ext.jdbcType}}#if($velocityHasNext),#end#println("")
 #end
-      </trim>
-      <where>
-#foreach($column in $tableInfo.pkColumn)
-        and `$!{column.obj.name}` = #{$!{column.name},jdbcType=$!{column.ext.jdbcType}}
+    where #foreach($column in $tableInfo.pkColumn)`$!{column.obj.name}` = #{$!{column.name},jdbcType=$!{column.ext.jdbcType}}#if($velocityHasNext) and #end#end#println("")
+  </update>
 #end
-      </where>
-    </update>
-#end
-
 #if(!$tableInfo.pkColumn.isEmpty())
-    <!--根据主键有选择的更新-->
-    <update id="updateSelective" parameterType="$!{tableInfo.savePackageName}.$!{entityPackage}.$!{entityClassName}">
+
+  <!-- 根据主键有选择的更新 -->
+  <update id="updateSelectiveByPk" parameterType="$tool.charSeqJoin('.', '', '', false, $!{tableInfo.savePackageName}, $!{entityPackage}, $!{entityClassName})">
+    update $!{tableInfo.obj.name}
+    <set>
+#foreach($column in $tableInfo.otherColumn)
+      <if test="${column.name} != null#if($column.type.equals("java.lang.String")) and $!{column.name} != ''#end">
+        `$!{column.obj.name}` = #{$!{column.name},jdbcType=$!{column.ext.jdbcType}},
+      </if>
+#end
+    </set>
+    where #foreach($column in $tableInfo.pkColumn)`$!{column.obj.name}` = #{$!{column.name},jdbcType=$!{column.ext.jdbcType}}#if($velocityHasNext) and #end#end#println("")
+  </update>
+#end
+#if(!$tableInfo.pkColumn.isEmpty() && $allowMultiQueries)
+
+  <!-- 根据主键批量更新 -->
+  <update id="batchUpdateByPk" parameterType="java.util.Collection">
+    <foreach collection="list" index="index" item="item" open="" close="" separator=";">
+      update $!{tableInfo.obj.name}
+      set
+#foreach($column in $tableInfo.otherColumn)
+        `$!{column.obj.name}` = #{item.$!{column.name},jdbcType=$!{column.ext.jdbcType}}#if($velocityHasNext),#end#println("")
+#end
+      where #foreach($column in $tableInfo.pkColumn)`$!{column.obj.name}` = #{item.$!{column.name},jdbcType=$!{column.ext.jdbcType}}#if($velocityHasNext) and #end#end#println("")
+    </foreach>
+  </update>
+#end
+#if(!$tableInfo.pkColumn.isEmpty() && $allowMultiQueries)
+
+  <!-- 根据主键批量有选择的更新 -->
+  <update id="batchUpdateSelectiveByPk" parameterType="java.util.Collection">
+    <foreach collection="list" index="index" item="item" open="" close="" separator=";">
       update $!{tableInfo.obj.name}
       <set>
 #foreach($column in $tableInfo.otherColumn)
-        <if test="${column.name} != null#if($column.type.equals("java.lang.String")) and $!{column.name} != ''#end">
-          `$!{column.obj.name}` = #{$!{column.name},jdbcType=$!{column.ext.jdbcType}},
+        <if test="item.${column.name} != null#if($column.type.equals("java.lang.String")) and item.$!{column.name} != ''#end">
+          `$!{column.obj.name}` = #{item.$!{column.name},jdbcType=$!{column.ext.jdbcType}},
         </if>
 #end
       </set>
-      <where>
-#foreach($column in $tableInfo.pkColumn)
-        and `$!{column.obj.name}` = #{$!{column.name},jdbcType=$!{column.ext.jdbcType}}
+      where #foreach($column in $tableInfo.pkColumn)`$!{column.obj.name}` = #{item.$!{column.name},jdbcType=$!{column.ext.jdbcType}}#if($velocityHasNext) and #end#end#println("")
+    </foreach>
+  </update>
 #end
-      </where>
-    </update>
+#if(!$tableInfo.pkColumn.isEmpty())
+
+  <!-- 根据主键查询 -->
+  <select id="selectByPk" resultMap="BaseResultMap">
+    select
+      <include refid="Base_Column_List" />
+    from $!tableInfo.obj.name
+    where #foreach($column in $tableInfo.pkColumn)`$!{column.obj.name}` = #{$!{column.name},jdbcType=$!{column.ext.jdbcType}}#if($velocityHasNext) and #end#end#println("")
+  </select>
 #end
 
-    <!--根据条件进行更新-->
-    <update id="updateByParams" parameterType="map">
-      update $!{tableInfo.obj.name}
-      <if test="selective">
-        <set>
-#foreach($column in $tableInfo.otherColumn)
-          <if test="record.${column.name} != null#if($column.type.equals("java.lang.String")) and record.$!{column.name} != ''#end">
-            `$!{column.obj.name}` = #{record.$!{column.name},jdbcType=$!{column.ext.jdbcType}},
-          </if>
-#end
-        </set>
-      </if>
-      <if test="!selective">
-        set <trim prefix="" suffix="" suffixOverrides=",">
-#foreach($column in $tableInfo.otherColumn)
-          `$!{column.obj.name}` = #{record.$!{column.name},jdbcType=$!{column.ext.jdbcType}},
-#end
-        </trim>
-      </if>
-      <where>
+  <select id="selectAll" parameterType="java.lang.Object" resultMap="BaseResultMap">
+    select
+      <include refid="Base_Column_List" />
+    from $!tableInfo.obj.name
+    <where>
 #foreach($column in $tableInfo.fullColumn)
-        <if test="params.${column.name} != null#if($column.type.equals("java.lang.String")) and params.$!column.name != ''#end">
-          and `$!{column.obj.name}` = #{params.$!{column.name},jdbcType=$!{column.ext.jdbcType}}
-        </if>
-#if($!{column.ext.genLikeProp} && ${column.type.equals("java.lang.String")})
-        <if test="(params.${column.name} == null or params.${column.name} == '') and params.${column.name}Like != null and params.${column.name}Like != ''">
-          and `$!{column.obj.name}` like binary concat('%', #{params.$!{column.name}Like}, '%')
-        </if>
+      <if test="${column.name} != null#if($column.type.equals("java.lang.String")) and $!{column.name} != ''#end">
+        and `$!{column.obj.name}` = #{$!{column.name},jdbcType=$!{column.ext.jdbcType}}
+      </if>
 #end
-#if($!{column.ext.genInProp})
-        <if test="(params.${column.name} == null#if($column.type.equals("java.lang.String")) or params.$!column.name == ''#end) and params.${column.name}s != null and params.${column.name}s.size() > 0">
-          <foreach collection="params.${column.name}s" index="index" item="item" open="and ${column.obj.name} in (" separator="," close=")">
-            #{item}
-          </foreach>
-        </if>
-#end
-#end
-      </where>
-    </update>
-
-    <!--根据主键查询-->
-    <select id="queryByPk" parameterType="map" resultMap="$!{entityClassName}ResultMap">
-      select
-#allSqlColumn()
-
-      from $!tableInfo.obj.name
-      <where>
-#foreach($column in $tableInfo.pkColumn)
-        and `$column.obj.name` = #{${column.name},jdbcType=$!{column.ext.jdbcType}}
-#end
-      </where>
-    </select>
-
-    <!--根据条件查询-->
-    <select id="queryListByParams" parameterType="$!{tableInfo.savePackageName}.$!{paramsPackage}.$!{paramsClassName}" resultMap="$!{entityClassName}ResultMap">
-      select
-#allSqlColumn()
-
-      from $!tableInfo.obj.name
-      <include refid="QueryByParamsWhereClause" />
-    </select>
-
+    </where>
+  </select>
 </mapper>

@@ -1,74 +1,33 @@
+## 引入自定义变量及宏定义
 $!init
 $!define
 
-##设置文件保存路径
+## 设置文件保存路径
 #save($serviceClassSavePath, $serviceClassName, ".java")
 
-#if($!{tableInfo.savePackageName})package $!{tableInfo.savePackageName}.#end$!{servicePackage};
+## 定义包路径
+$tool.charSeqJoin(".", "package ", ";", false, $tableInfo.savePackageName, $servicePackage)
 
-import $!{tableInfo.savePackageName}.$!{entityPackage}.$!{entityClassName};
-import $!{tableInfo.savePackageName}.$!{paramsPackage}.$!{paramsClassName};
+$tool.charSeqJoin(".", "import ", ";", false, $tableInfo.savePackageName, $dtoPackage, $dtoClassName)
 import java.util.List;
 
-/**
- * $!{tableInfo.comment}($!{entityClassName})表服务接口
- *
- * @author $!author
- * @since $!time.currTime()
- */
-public interface $!serviceClassName {
+## 使用宏定义实现类注释信息
+#classDescription("")
+public interface $serviceClassName {
 
-    /**
-     * 新增数据
-     * @return 新增的数据
-     */
-    $!{entityClassName} insert($!{entityClassName} $!{tool.firstLowerCase($!{entityClassName})});
+    $dtoClassName add($dtoClassName $!{tool.firstLowerCase($dtoClassName)});
+#if(!$tableInfo.pkColumn.isEmpty())
 
-    /**
-     * 有选择的新增
-     * @return 新增的数据
-     */
-    $!{entityClassName} insertSelective($!{entityClassName} $!tool.firstLowerCase($!{entityClassName}));
+    int deleteByPk(#foreach($column in $tableInfo.pkColumn)$tool.getClsNameByFullName($column.type) $column.name#if($velocityHasNext), #end#end);
+#end
+#if(!$tableInfo.pkColumn.isEmpty())
 
-    /**
-     * 批量新增
-     * @return 受影响的行数
-     */
-    int insertBatch(List<$!{entityClassName}> $!tool.firstLowerCase($!{entityClassName})List);
+    int updateByPk($dtoClassName $!{tool.firstLowerCase($dtoClassName)});
+#end
+#if(!$tableInfo.pkColumn.isEmpty())
 
-    /**
-     * 根据条件删除数据
-     * @return 受影响的行数
-     */
-    int deleteByParams($!{paramsClassName} params);
-
-    /**
-     * 修改数据
-     * @return 受影响的行数
-     */
-    int update($!{entityClassName} $!{tool.firstLowerCase($!{entityClassName})});
-
-    /**
-     * 有选择的修改
-     * @return 受影响的行数
-     */
-    int updateSelective($!{entityClassName} $!{tool.firstLowerCase($!{entityClassName})});
-
-    /**
-     * 根据条件修改数据
-     * @return 受影响的行数
-     */
-    int updateByParams($!{entityClassName} $!{tool.firstLowerCase($!{entityClassName})}, $!paramsClassName params, boolean selective);
-
-#if(!$tableInfo.pkColumn.isEmpty())    /**
-    * 根据主键查询单条数据
-    */
-    $entityClassName queryByPk(#foreach($column in $!{tableInfo.pkColumn})$!{tool.getClsNameByFullName($!{column.type})} $!{column.name}#if($velocityHasNext), #end#end);
+    $dtoClassName queryByPk(#foreach($column in $tableInfo.pkColumn)$tool.getClsNameByFullName($column.type) $column.name#if($velocityHasNext), #end#end);
 #end
 
-    /**
-     * 查询多条数据
-     */
-    List<$!{entityClassName}> queryListByParams($!{paramsClassName} params);
-
+    List<$!{dtoClassName}> queryAll(Object params);
 }

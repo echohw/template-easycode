@@ -1,0 +1,58 @@
+## 引入自定义变量及宏定义
+$!init
+$!define
+
+## 设置文件保存路径
+#save($assemblerClassSavePath, $assemblerClassName, ".java")
+
+## 定义包路径
+$tool.charSeqJoin(".", "package ", ";", false, $tableInfo.savePackageName, $assemblerPackage)
+
+$tool.charSeqJoin(".", "import ", ";", false, $tableInfo.savePackageName, $entityPackage, $entityClassName)
+$tool.charSeqJoin(".", "import ", ";", false, $tableInfo.savePackageName, $dtoPackage, $dtoClassName)
+$tool.charSeqJoin(".", "import ", ";", false, $tableInfo.savePackageName, $inVoPackage, $inVoClassName)
+$tool.charSeqJoin(".", "import ", ";", false, $tableInfo.savePackageName, $outVoPackage, $outVoClassName)
+import org.springframework.stereotype.Component;
+import org.springframework.beans.BeanUtils;
+
+## 使用宏定义实现类注释信息
+#classDescription("")
+@Component
+public class $assemblerClassName {
+
+    public $entityClassName assemble($dtoClassName $!{tool.firstLowerCase($dtoClassName)}) {
+        if ($tool.firstLowerCase($dtoClassName) == null) {
+            return null;
+        }
+        $entityClassName $tool.firstLowerCase($entityClassName) = new $!{entityClassName}();
+        BeanUtils.copyProperties($tool.firstLowerCase($dtoClassName), $!{tool.firstLowerCase($entityClassName)});
+        return $!{tool.firstLowerCase($entityClassName)};
+    }
+
+    public $dtoClassName assembleDTO($entityClassName $!{tool.firstLowerCase($entityClassName)}) {
+        if ($tool.firstLowerCase($entityClassName) == null) {
+            return null;
+        }
+        $dtoClassName $tool.firstLowerCase($dtoClassName) = new $!{dtoClassName}();
+        BeanUtils.copyProperties($tool.firstLowerCase($entityClassName), $!{tool.firstLowerCase($dtoClassName)});
+        return $!{tool.firstLowerCase($dtoClassName)};
+    }
+
+    public $dtoClassName assembleDTO($inVoClassName $!{tool.firstLowerCase($inVoClassName)}) {
+        if ($tool.firstLowerCase($inVoClassName) == null) {
+            return null;
+        }
+        $dtoClassName $tool.firstLowerCase($dtoClassName) = new $!{dtoClassName}();
+        BeanUtils.copyProperties($tool.firstLowerCase($inVoClassName), $!{tool.firstLowerCase($dtoClassName)});
+        return $!{tool.firstLowerCase($dtoClassName)};
+    }
+
+    public $outVoClassName assembleOutVO($dtoClassName $!{tool.firstLowerCase($dtoClassName)}) {
+        if ($tool.firstLowerCase($dtoClassName) == null) {
+            return null;
+        }
+        $outVoClassName $tool.firstLowerCase($outVoClassName) = new $!{outVoClassName}();
+        BeanUtils.copyProperties($tool.firstLowerCase($dtoClassName), $!{tool.firstLowerCase($outVoClassName)});
+        return $!{tool.firstLowerCase($outVoClassName)};
+    }
+}
