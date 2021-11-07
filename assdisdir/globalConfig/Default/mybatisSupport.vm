@@ -1,0 +1,42 @@
+## 针对MyBatis进行支持，主要用于生成xml文件
+#foreach($column in $tableInfo.fullColumn)
+    #if(!$column.custom) ## 非自定义类型才将sqlType和jdbcType保存到$column.ext中
+        ## 储存列类型
+        #set($sqlType = $tool.getField($column.obj.dataType, "typeName"))
+        $tool.call($column.ext.put("sqlType", $sqlType))
+        #if($tool.newHashSet("tinyint").contains($sqlType))
+            #set($jdbcType="TINYINT")
+        #elseif($tool.newHashSet("smallint").contains($sqlType))
+            #set($jdbcType="SMALLINT")
+        #elseif($tool.newHashSet("mediumint", "int", "integer").contains($sqlType))
+            #set($jdbcType="INTEGER")
+        #elseif($tool.newHashSet("bigint").contains($sqlType))
+            #set($jdbcType="BIGINT")
+        #elseif($tool.newHashSet("float").contains($sqlType))
+            #set($jdbcType="REAL")
+        #elseif($tool.newHashSet("double").contains($sqlType))
+            #set($jdbcType="DOUBLE")
+        #elseif($tool.newHashSet("decimal").contains($sqlType))
+            #set($jdbcType="DECIMAL")
+        #elseif($tool.newHashSet("year", "date").contains($sqlType))
+            #set($jdbcType="DATE")
+        #elseif($tool.newHashSet("time").contains($sqlType))
+            #set($jdbcType="TIME")
+        #elseif($tool.newHashSet("timestamp", "datetime").contains($sqlType))
+            #set($jdbcType="TIMESTAMP")
+        #elseif($tool.newHashSet("char").contains($sqlType))
+            #set($jdbcType="VARCHAR")
+        #elseif($tool.newHashSet("varchar", "tinytext").contains($sqlType))
+            #set($jdbcType="VARCHAR")
+        #elseif($tool.newHashSet("text", "mediumtext", "longtext").contains($sqlType))
+            #set($jdbcType="LONGVARCHAR")
+        #elseif($tool.newHashSet("tinyblob").contains($sqlType))
+            #set($jdbcType="BINARY")
+        #elseif($tool.newHashSet("blob", "mediumblob", "longblob").contains($sqlType))
+            #set($jdbcType="LONGVARBINARY")
+        #else
+            #set($jdbcType="VARCHAR") ## 其他类型
+        #end
+        $tool.call($column.ext.put("jdbcType", $jdbcType))
+    #end
+#end

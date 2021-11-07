@@ -1,0 +1,110 @@
+## 初始化区域
+## 是否使用lombok
+#set($useLombok = true)
+## 是否使用Swagger
+#set($useSwagger = false)
+## 是否允许批量执行sql
+#set($allowMultiQueries = false)
+## 是否生成getter和setter方法
+#set($genGetterMethod = false)
+#set($genSetterMethod = false)
+## 是否去掉表前缀
+#set($trimTablePrefix = false)
+## 定义表前缀列表
+#set($tablePrefixs = $tool.newHashSet("t_"))
+## 是否手动分表
+#set($manualSharding = false)
+#set($shardingMapperOccupy = "tableSuffix")
+#set($shardingXmlSplice = '_${' + $shardingMapperOccupy + '}')
+
+## 去掉表的t_前缀
+#if($!trimTablePrefix)
+    #foreach($tablePrefix in $!tablePrefixs)
+        #if($tableInfo.obj.name.startsWith($tablePrefix))
+            $tableInfo.setName($tool.getClassName($tableInfo.obj.name.replaceFirst("^${tablePrefix}", "")))
+            #break
+        #end
+    #end
+#end
+
+## 定义包名
+#set($entityPackage = "entity")
+#set($mapperPackage = "mapper")
+#set($managerPackage = "manager")
+#set($servicePackage = "service")
+#set($serviceImplPackage = "service.impl")
+#set($controllerPackage = "controller")
+#set($inDTOPackage = "objects.dto")
+#set($outDTOPackage = "objects.dto")
+#set($inVOPackage = "objects.vo")
+#set($outVOPackage = "objects.vo")
+#set($assemblerPackage = "objects")
+
+## 定义类名
+#set($entityClassName = $tool.append($tableInfo.name, ""))
+#set($mapperClassName = $tool.append($entityClassName, "Mapper"))
+#set($managerClassName = $tool.append($entityClassName, "Manager"))
+#set($serviceClassName = $tool.append($entityClassName, "Service"))
+#set($serviceImplClassName = $tool.append($entityClassName, "ServiceImpl"))
+#set($controllerClassName = $tool.append($entityClassName, "Controller"))
+#set($inDTOClassName = $tool.append($entityClassName, "InDTO"))
+#set($outDTOClassName = $tool.append($entityClassName, "OutDTO"))
+#set($inVOClassName = $tool.append($entityClassName, "InVO"))
+#set($outVOClassName = $tool.append($entityClassName, "OutVO"))
+#set($assemblerClassName = $tool.append($entityClassName, "Assembler"))
+
+## 文件保存路径
+#set($entityClassSavePath = "/${entityPackage.replace('.', '/')}")
+#set($mapperClassSavePath = "/${mapperPackage.replace('.', '/')}")
+#set($mapperXmlSavePath = "/mapper")
+#set($managerClassSavePath = "/${managerPackage.replace('.', '/')}")
+#set($serviceClassSavePath = "/${servicePackage.replace('.', '/')}")
+#set($serviceImplClassSavePath = "/${serviceImplPackage.replace('.', '/')}")
+#set($controllerClassSavePath = "/${controllerPackage.replace('.', '/')}")
+#set($inDTOClassSavePath = "/${inDTOPackage.replace('.', '/')}")
+#set($outDTOClassSavePath = "/${outDTOPackage.replace('.', '/')}")
+#set($inVOClassSavePath = "/${inVOPackage.replace('.', '/')}")
+#set($outVOClassSavePath = "/${outVOPackage.replace('.', '/')}")
+#set($assemblerClassSavePath = "/${assemblerPackage.replace('.', '/')}")
+
+## 生成时要排除的列
+#set($excludeFields = $tool.newHashSet())
+
+##########################################
+
+## 参考阿里巴巴开发手册，POJO 类中布尔类型的变量，都不要加 is 前缀，否则部分框架解析会引起序列化错误
+#foreach($column in $tableInfo.fullColumn)
+    #if($column.name.startsWith("is") && $column.type.equals("java.lang.Boolean"))
+        $!column.setName($tool.firstLowerCase($column.name.replaceFirst("^is", "")))
+    #end
+#end
+
+## 实现动态排除列
+#foreach($field in $!excludeFields)
+    #set($newList = $tool.newArrayList())
+    #foreach($column in $tableInfo.fullColumn)
+        #if($column.name != $field)
+            ## 带有返回值的方法调用时使用$tool.call来消除返回值
+            $tool.call($newList.add($column))
+        #end
+    #end
+    ## 重新保存
+    $tableInfo.setFullColumn($newList)
+#end
+
+## 对表中字段映射的Java类型进行导包
+#set($importList = $tool.newHashSet())
+#foreach($column in $tableInfo.fullColumn)
+    ## 非lang包下的类并且不是byte[]需要导包
+    #if(!$column.type.startsWith("java.lang.") && !$column.type.equals("byte[]"))
+        ## 带有返回值的方法调用时使用$tool.call来消除返回值
+        $tool.call($importList.add($column.type))
+    #end
+#end
+
+## 修改要导入的包列表
+#if($useLombok)
+    $tool.call($importList.add("lombok.Getter"))
+    $tool.call($importList.add("lombok.Setter"))
+    $tool.call($importList.add("lombok.ToString"))
+#end

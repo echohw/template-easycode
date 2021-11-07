@@ -1,5 +1,8 @@
+HELP.md
+target/
+!.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**
 debug/
-settings/
 
 ### STS ###
 .apt_generated

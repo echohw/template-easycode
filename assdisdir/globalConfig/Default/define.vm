@@ -1,0 +1,58 @@
+##（Velocity宏定义）
+## 定义直接保存路径与文件名简化的宏定义，调用方式：#save("/entity", "User", ".java")
+#macro(save $path $fileName $suffix)
+    $callback.setSavePath($tool.append($tableInfo.savePath, $path))
+    $callback.setFileName($tool.append($fileName, $suffix))
+#end
+
+## 定义打印及打印并换行的宏定义
+#macro(print $str)$!str#end
+#macro(println $str)$!str
+#end
+
+## 定义字符串序列拼接的宏定义
+#macro(strSeqJoin $delimiter $prefix $suffix $alwaysPreAndSuf $strSeq)
+#set($strSeqJoinRes = "#foreach($str in $strSeq)$!str#if($!str != '' && $velocityHasNext)$!delimiter#end#end")
+#if($alwaysPreAndSuf || "$!{strSeqJoinRes}" != "")$!prefix#end$strSeqJoinRes#if($alwaysPreAndSuf || "$!{strSeqJoinRes}" != "")$!suffix#end
+#end
+
+## 定义类注释的宏定义，调用方式：#classDesc("描述信息")
+#macro(classDesc $desc)
+/**
+#if("$!{desc}" != "")
+ * $desc
+ *
+#end
+ * Created#if("$!{author}" != "") by $author#end on ${time.currTime("yyyy-MM-dd HH:mm")}.
+ */
+#end
+
+##定义GET，SET方法的宏定义，调用方式：#getSetMethod($column)
+#macro(getSetMethod $columns $type)
+#if($type == "getter" || !$type)
+#foreach($column in $columns)#if(!$column.ext.disable)
+
+    public $!{tool.getClsNameByFullName($column.type)} get$!{tool.firstUpperCase($column.name)}() {
+        return $!{column.name};
+    }
+#end#end
+#end
+#if($type == "setter" || !$type)
+#foreach($column in $columns)#if(!$column.ext.disable)
+
+    public void set$!{tool.firstUpperCase($column.name)}($!{tool.getClsNameByFullName($column.type)} $!{column.name}) {
+        this.$!{column.name} = $!{column.name};
+    }
+#end#end
+#end
+#end
+
+## 输出Table的所有列
+#macro(printAllColumn $linePreSpace $lineItemLimit)
+#foreach($column in $tableInfo.fullColumn)#if($velocityCount % $lineItemLimit == 1)#print($linePreSpace)#end`$column.obj.name`#if($velocityHasNext), #end#if($velocityCount % $lineItemLimit == 0 && $velocityHasNext)#println("")#end#end#println("")
+#end
+
+## 输出Table的所有列所对应的属性
+#macro(printAllField $linePreSpace $lineItemLimit)
+#foreach($column in $tableInfo.fullColumn)#if($velocityCount % $lineItemLimit == 1)#print($linePreSpace)#end#{${column.name},jdbcType=${column.ext.jdbcType}}#if($velocityHasNext), #end#if($velocityCount % $lineItemLimit == 0 && $velocityHasNext)#println("")#end#end#println("")
+#end

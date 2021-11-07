@@ -1,0 +1,137 @@
+[
+  {
+    "matchType": "REGEX",
+    "columnType": "tinyint(?:\\([\\d+,]+\\))?(?: unsigned)?",
+    "javaType": "java.lang.Byte"
+  },
+  {
+    "matchType": "REGEX",
+    "columnType": "smallint(?:\\([\\d+,]+\\))?(?: unsigned)?",
+    "javaType": "java.lang.Short"
+  },
+  {
+    "matchType": "REGEX",
+    "columnType": "mediumint(?:\\([\\d+,]+\\))?(?: unsigned)?",
+    "javaType": "java.lang.Integer"
+  },
+  {
+    "matchType": "REGEX",
+    "columnType": "int(?:\\([\\d+,]+\\))?(?: unsigned)?",
+    "javaType": "java.lang.Integer"
+  },
+  {
+    "matchType": "REGEX",
+    "columnType": "integer(?:\\([\\d+,]+\\))?(?: unsigned)?",
+    "javaType": "java.lang.Integer"
+  },
+  {
+    "matchType": "REGEX",
+    "columnType": "bigint(?:\\([\\d+,]+\\))?(?: unsigned)?",
+    "javaType": "java.lang.Long"
+  },
+  {
+    "matchType": "REGEX",
+    "columnType": "float(?:\\([\\d+,]+\\))?(?: unsigned)?",
+    "javaType": "java.lang.Float"
+  },
+  {
+    "matchType": "REGEX",
+    "columnType": "double(?:\\([\\d+,]+\\))?(?: unsigned)?",
+    "javaType": "java.lang.Double"
+  },
+  {
+    "matchType": "REGEX",
+    "columnType": "decimal(?:\\([\\d+,]+\\))?(?: unsigned)?",
+    "javaType": "java.math.BigDecimal"
+  },
+  {
+    "matchType": "REGEX",
+    "columnType": "year(?:\\([\\d+,]+\\))?",
+    "javaType": "java.util.Date"
+  },
+  {
+    "matchType": "REGEX",
+    "columnType": "time(?:\\([\\d+,]+\\))?",
+    "javaType": "java.util.Date"
+  },
+  {
+    "matchType": "REGEX",
+    "columnType": "date(?:\\([\\d+,]+\\))?",
+    "javaType": "java.util.Date"
+  },
+  {
+    "matchType": "REGEX",
+    "columnType": "timestamp(?:\\([\\d+,]+\\))?",
+    "javaType": "java.util.Date"
+  },
+  {
+    "matchType": "REGEX",
+    "columnType": "datetime(?:\\([\\d+,]+\\))?",
+    "javaType": "java.util.Date"
+  },
+  {
+    "matchType": "REGEX",
+    "columnType": "char(?:\\(1\\))?",
+    "javaType": "java.lang.String"
+  },
+  {
+    "matchType": "REGEX",
+    "columnType": "char(?:\\([\\d+,]+\\))?",
+    "javaType": "java.lang.String"
+  },
+  {
+    "matchType": "REGEX",
+    "columnType": "varchar(?:\\([\\d+,]+\\))?",
+    "javaType": "java.lang.String"
+  },
+  {
+    "matchType": "REGEX",
+    "columnType": "tinytext(?:\\([\\d+,]+\\))?",
+    "javaType": "java.lang.String"
+  },
+  {
+    "matchType": "REGEX",
+    "columnType": "text(?:\\([\\d+,]+\\))?",
+    "javaType": "java.lang.String"
+  },
+  {
+    "matchType": "REGEX",
+    "columnType": "mediumtext(?:\\([\\d+,]+\\))?",
+    "javaType": "java.lang.String"
+  },
+  {
+    "matchType": "REGEX",
+    "columnType": "longtext(?:\\([\\d+,]+\\))?",
+    "javaType": "java.lang.String"
+  },
+  {
+    "matchType": "REGEX",
+    "columnType": "tinyblob(?:\\([\\d+,]+\\))?",
+    "javaType": "byte[]"
+  },
+  {
+    "matchType": "REGEX",
+    "columnType": "blob(?:\\([\\d+,]+\\))?",
+    "javaType": "byte[]"
+  },
+  {
+    "matchType": "REGEX",
+    "columnType": "mediumblob(?:\\([\\d+,]+\\))?",
+    "javaType": "byte[]"
+  },
+  {
+    "matchType": "REGEX",
+    "columnType": "longblob(?:\\([\\d+,]+\\))?",
+    "javaType": "byte[]"
+  },
+  {
+    "matchType": "REGEX",
+    "columnType": "boolean(?:\\([\\d+,]+\\))?",
+    "javaType": "java.lang.Boolean"
+  },
+  {
+    "matchType": "REGEX",
+    "columnType": "(?:.*zerofill)?",
+    "javaType": "java.lang.String"
+  }
+]

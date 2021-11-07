@@ -1,0 +1,17 @@
+ectool:
+  ass:
+    filesort:
+      globalConfig:
+        Common:
+          - init.vm
+          - define.vm
+          - mybatisSupport.vm
+          - autoImport.vm
+      template:
+        Common:
+          - entity.java.vm
+          - mapper.java.vm
+          - mapper.xml.vm
+          - manager.java.vm
+          - service.java.vm
+          - serviceImpl.java.vm

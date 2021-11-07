@@ -1,0 +1,50 @@
+## 引入自定义变量及宏定义
+$!{init.vm}
+$!{define.vm}
+
+## 设置文件保存路径
+#save($managerClassSavePath, $managerClassName, ".java")
+
+## 定义包路径
+#strSeqJoin(".", "package ", ";", false, $tool.newArrayList($tableInfo.savePackageName, $managerPackage))#println("")
+
+#strSeqJoin(".", "import ", ";", false, $tool.newArrayList($tableInfo.savePackageName, $mapperPackage, $mapperClassName))#println("")
+#strSeqJoin(".", "import ", ";", false, $tool.newArrayList($tableInfo.savePackageName, $entityPackage, $entityClassName))#println("")
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+import java.util.List;
+
+## 使用宏定义实现类注释信息
+#classDesc("")
+@Component
+public class $managerClassName {
+
+    @Autowired
+    private $mapperClassName $!{tool.firstLowerCase($mapperClassName)};
+
+    public int insert($entityClassName $!{tool.firstLowerCase($entityClassName)}) {
+        return $!{tool.firstLowerCase($mapperClassName)}.insertSelective($!{tool.firstLowerCase($entityClassName)});
+    }
+#if(!$tableInfo.pkColumn.isEmpty())
+
+    public int deleteByPk(#if($manualSharding)String $!{shardingMapperOccupy}, #end#foreach($column in $tableInfo.pkColumn)$tool.getClsNameByFullName($column.type) $column.name#if($velocityHasNext), #end#end) {
+        return $!{tool.firstLowerCase($mapperClassName)}.deleteByPk(#if($manualSharding)$!{shardingMapperOccupy}, #end#foreach($column in $tableInfo.pkColumn)$column.name#if($velocityHasNext), #end#end);
+    }
+#end
+#if(!$tableInfo.pkColumn.isEmpty())
+
+    public int updateByPk($entityClassName $!{tool.firstLowerCase($entityClassName)}) {
+        return $!{tool.firstLowerCase($mapperClassName)}.updateSelectiveByPk($!{tool.firstLowerCase($entityClassName)});
+    }
+#end
+#if(!$tableInfo.pkColumn.isEmpty())
+
+    public $entityClassName selectByPk(#if($manualSharding)String $!{shardingMapperOccupy}, #end#foreach($column in $tableInfo.pkColumn)$tool.getClsNameByFullName($column.type) $column.name#if($velocityHasNext), #end#end) {
+        return $!{tool.firstLowerCase($mapperClassName)}.selectByPk(#if($manualSharding)$!{shardingMapperOccupy}, #end#foreach($column in $tableInfo.pkColumn)$column.name#if($velocityHasNext), #end#end);
+    }
+#end
+
+    public List<$!{entityClassName}> selectAll(Object params) {
+        return $!{tool.firstLowerCase($mapperClassName)}.selectAll(params);
+    }
+}

@@ -1,0 +1,22 @@
+[
+  {
+    "title": "disable",
+    "type": "BOOLEAN",
+    "selectValue": ""
+  },
+  {
+    "title": "support",
+    "type": "SELECT",
+    "selectValue": ",add,edit,query,del,ui"
+  },
+  {
+    "title": "query",
+    "type": "SELECT",
+    "selectValue": ",eq,neq,in,nin,gt,gte,lt,lte,like,llike,rlike"
+  },
+  {
+    "title": "fixCond",
+    "type": "TEXT",
+    "selectValue": ""
+  }
+]

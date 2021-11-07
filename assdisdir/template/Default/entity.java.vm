@@ -1,0 +1,32 @@
+## 引入自定义变量及宏定义
+$!{init.vm}
+$!{define.vm}
+
+## 设置文件保存路径
+#save($entityClassSavePath, $entityClassName, ".java")
+
+## 定义包路径
+#strSeqJoin(".", "package ", ";", false, $tool.newArrayList($tableInfo.savePackageName, $entityPackage))#println("")
+
+## 使用全局变量实现默认包导入
+$!{autoImport.vm}
+import java.io.Serializable;
+
+## 使用宏定义实现类注释信息
+#classDesc($tableInfo.comment)
+## 如果使用了Lombok,则在类上添加Lombok的注解
+#if($useLombok)
+@Getter
+@Setter
+@ToString
+#end
+public class $entityClassName implements Serializable {
+
+    private static final long serialVersionUID = $!{tool.serial()};
+#foreach($column in $tableInfo.fullColumn)#if(!$column.ext.disable)
+    private $tool.getClsNameByFullName($column.type) $!{column.name};#if("$!{column.comment}" != "") // $!{column.comment.replaceAll("\r\n", "")}#end#println("")
+#end#end
+## 使用宏定义实现getter、setter方法
+#if($genGetterMethod)#getSetMethod($tableInfo.fullColumn, "getter")#end
+#if($genSetterMethod)#getSetMethod($tableInfo.fullColumn, "setter")#end
+}
